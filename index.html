@@ -1,0 +1,435 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ankita Salaria — Cloud-Native Tooling · Go · Python</title>
+<meta name="description" content="CS undergraduate building Kubernetes tooling in Go and Python — a Kubernetes operator, cluster health monitors, container linters, computer-vision apps, and Meshery (CNCF) open-source work.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🛰️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #070b12;
+    --bg-soft: #0c1220;
+    --card: rgba(255,255,255,.035);
+    --line: rgba(140,170,220,.14);
+    --text: #dfe7f3;
+    --muted: #8b97ab;
+    --accent: #38bdf8;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --grad: linear-gradient(100deg, #38bdf8 0%, #a78bfa 45%, #f472b6 80%);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(56,189,248,.35); }
+  a { color: inherit; text-decoration: none; }
+
+  /* ---------- ambient background ---------- */
+  .bg { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(110px); opacity: .55;
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  .blob.b1 { width: 46vw; height: 46vw; left: -12vw; top: -14vw;
+    background: radial-gradient(circle, rgba(56,189,248,.34), transparent 70%); }
+  .blob.b2 { width: 42vw; height: 42vw; right: -14vw; top: 10vh;
+    background: radial-gradient(circle, rgba(167,139,250,.30), transparent 70%);
+    animation-duration: 34s; }
+  .blob.b3 { width: 38vw; height: 38vw; left: 26vw; bottom: -20vw;
+    background: radial-gradient(circle, rgba(52,211,153,.22), transparent 70%);
+    animation-duration: 42s; }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(6vw, 5vh) scale(1.15); }
+  }
+  .grid-lines {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(140,170,220,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140,170,220,.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%);
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- nav ---------- */
+  nav.top {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: rgba(7,11,18,.75);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.top .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .02em; }
+  .nav-brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent3);
+    box-shadow: 0 0 12px rgba(52,211,153,.9); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  nav.top .links a { color: var(--muted); font-size: .92rem; margin-left: 26px; transition: color .2s; }
+  nav.top .links a:hover { color: #fff; }
+
+  /* ---------- hero ---------- */
+  header.hero { padding: 108px 0 84px; position: relative; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: 'JetBrains Mono', monospace; font-size: .8rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--accent);
+    border: 1px solid rgba(56,189,248,.3); border-radius: 999px; padding: 7px 16px;
+    background: rgba(56,189,248,.07); margin-bottom: 26px;
+  }
+  h1.headline {
+    font-size: clamp(2.5rem, 6.2vw, 4.4rem); font-weight: 800; line-height: 1.08;
+    letter-spacing: -.03em;
+  }
+  h1 .grad {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 200% 100%; animation: shine 7s linear infinite;
+  }
+  @keyframes shine { to { background-position: 200% 0; } }
+  .hero p.sub {
+    max-width: 640px; color: var(--muted); font-size: 1.13rem; margin-top: 22px;
+  }
+  .hero p.sub strong { color: var(--text); font-weight: 600; }
+  .cta-row { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 13px 26px; border-radius: 12px; font-weight: 600; font-size: .97rem;
+    transition: transform .18s ease, box-shadow .18s ease, background .2s;
+  }
+  .btn.primary {
+    background: var(--grad); background-size: 180% 100%; color: #06121b;
+    box-shadow: 0 8px 30px rgba(56,189,248,.25);
+  }
+  .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 12px 38px rgba(167,139,250,.4); }
+  .btn.ghost { border: 1px solid var(--line); color: var(--text); background: var(--card); }
+  .btn.ghost:hover { border-color: rgba(56,189,248,.45); transform: translateY(-2px); }
+
+  .stat-row { display: flex; gap: 40px; margin-top: 52px; flex-wrap: wrap; }
+  .stat .n {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.7rem; font-weight: 700;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .stat .l { color: var(--muted); font-size: .85rem; letter-spacing: .04em; text-transform: uppercase; }
+
+  /* ---------- sections ---------- */
+  section { padding: 76px 0; }
+  .section-label {
+    display: flex; align-items: center; gap: 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: .82rem; font-weight: 700;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 34px;
+  }
+  .section-label .num { color: var(--accent); }
+  .section-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .section-sub { color: var(--muted); margin: -22px 0 30px; font-size: .98rem; }
+
+  /* ---------- open source ---------- */
+  .pr-list { display: grid; gap: 12px; }
+  .pr {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 17px 22px; border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); transition: border-color .2s, transform .2s;
+  }
+  .pr:hover { border-color: rgba(167,139,250,.4); transform: translateX(6px); }
+  .pr .badge {
+    font-family: 'JetBrains Mono', monospace; font-size: .74rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 999px; letter-spacing: .04em;
+  }
+  .badge.merged { background: rgba(52,211,153,.12); color: var(--accent3); border: 1px solid rgba(52,211,153,.35); }
+  .badge.open   { background: rgba(56,189,248,.10); color: var(--accent); border: 1px solid rgba(56,189,248,.35); }
+  .pr .t { flex: 1; min-width: 260px; font-size: .97rem; }
+  .pr .t a { border-bottom: 1px dashed rgba(140,170,220,.35); transition: color .2s; }
+  .pr .t a:hover { color: var(--accent); }
+  .pr .org { color: var(--muted); font-size: .85rem; font-family: 'JetBrains Mono', monospace; }
+
+  /* ---------- projects ---------- */
+  .projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .card {
+    position: relative; overflow: hidden;
+    border: 1px solid var(--line); border-radius: 18px; background: var(--card);
+    padding: 26px; display: flex; flex-direction: column; gap: 12px;
+    transition: transform .25s ease, border-color .25s, box-shadow .25s;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(56,189,248,.4);
+    box-shadow: 0 18px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(56,189,248,.12);
+  }
+  .card::before {
+    content: ""; position: absolute; inset: -1px; border-radius: 18px; pointer-events: none;
+    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(56,189,248,.10), transparent 45%);
+    opacity: 0; transition: opacity .3s;
+  }
+  .card:hover::before { opacity: 1; }
+  .card .top-row { display: flex; align-items: center; justify-content: space-between; }
+  .card h3 { font-size: 1.14rem; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 10px; }
+  .card .lang {
+    font-family: 'JetBrains Mono', monospace; font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em; color: var(--accent2);
+    border: 1px solid rgba(167,139,250,.3); border-radius: 999px; padding: 3px 10px;
+  }
+  .card p { color: var(--muted); font-size: .93rem; flex: 1; }
+  .card .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace; font-size: .72rem; color: var(--muted);
+    background: rgba(140,170,220,.08); padding: 4px 10px; border-radius: 8px;
+  }
+  .card .foot { font-size: .82rem; color: var(--accent); opacity: 0; transform: translateY(4px);
+    transition: all .25s; display: inline-flex; align-items: center; gap: 6px; }
+  .card:hover .foot { opacity: 1; transform: translateY(0); }
+
+  /* featured festicam */
+  .featured {
+    grid-column: 1 / -1;
+    display: grid; grid-template-columns: 1.05fr 1fr; gap: 30px; align-items: center;
+    padding: 30px;
+  }
+  @media (max-width: 860px) { .featured { grid-template-columns: 1fr; } }
+  .shot {
+    border-radius: 14px; overflow: hidden; border: 1px solid rgba(56,189,248,.25);
+    box-shadow: 0 22px 60px rgba(0,0,0,.55);
+    transition: transform .35s ease;
+  }
+  .shot:hover { transform: scale(1.02); }
+  .shot img { width: 100%; display: block; }
+  .featured h3 { font-size: 1.5rem; }
+
+  /* ---------- skills marquee ---------- */
+  .marquee {
+    overflow: hidden; border-block: 1px solid var(--line); padding: 18px 0;
+    margin: 30px 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .marquee .track {
+    display: flex; gap: 44px; width: max-content;
+    animation: scroll 28s linear infinite;
+    font-family: 'JetBrains Mono', monospace; font-size: .9rem; color: var(--muted);
+  }
+  .marquee .track span b { color: var(--text); font-weight: 500; }
+  .marquee:hover .track { animation-play-state: paused; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+
+  /* ---------- contact ---------- */
+  .contact-card {
+    text-align: center; padding: 64px 30px;
+    border: 1px solid var(--line); border-radius: 24px;
+    background: linear-gradient(180deg, rgba(56,189,248,.06), rgba(167,139,250,.05));
+  }
+  .contact-card h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -.02em; }
+  .contact-card p { color: var(--muted); margin: 14px auto 30px; max-width: 460px; }
+
+  footer.page {
+    padding: 34px 0 60px; text-align: center; color: var(--muted); font-size: .88rem;
+  }
+  footer.page a { color: var(--accent); }
+
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="grid-lines" aria-hidden="true"></div>
+
+<nav class="top">
+  <div class="wrap">
+    <a class="nav-brand" href="#top"><span class="dot"></span>ankita.dev</a>
+    <div class="links">
+      <a href="#oss">Open Source</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+      <a href="https://github.com/Ankitavasudev" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap" id="top">
+  <p class="eyebrow">CS Undergraduate · Cloud-Native · Open Source</p>
+  <h1 class="headline">Turning <span class="grad">cluster chaos</span><br>into clean Go tooling from India.</h1>
+  <p class="sub">I'm Ankita — a CS undergrad building <strong>Kubernetes &amp; observability tools in Go and Python</strong>, and contributing to <strong>Meshery (CNCF)</strong>. Everything ships with tests, CI and docs that explain the "why".</p>
+  <div class="cta-row">
+    <a class="btn primary" href="#projects">See the work <span aria-hidden="true">→</span></a>
+    <a class="btn ghost" href="mailto:ankitasalaria21@gmail.com">✉ ankitasalaria21@gmail.com</a>
+  </div>
+  <div class="stat-row">
+    <div class="stat"><div class="n" data-count="15">0</div><div class="l">Repos shipped</div></div>
+    <div class="stat"><div class="n" data-count="2">0</div><div class="l">Meshery PRs merged</div></div>
+    <div class="stat"><div class="n" data-count="120" data-plus="+">0</div><div class="l">Tests across projects</div></div>
+    <div class="stat"><div class="n" data-count="1">0</div><div class="l">CNCF org contributing</div></div>
+  </div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span><b>Go</b></span><span>Kubernetes</span><span>controller-runtime</span><span><b>Python</b></span><span>FastAPI</span><span>React</span><span>Docker</span><span>Prometheus</span><span>OpenCV</span><span>MediaPipe</span><span>Cobra</span><span>GitHub Actions</span><span>kubectl</span><span>CI/CD</span>
+    <span><b>Go</b></span><span>Kubernetes</span><span>controller-runtime</span><span><b>Python</b></span><span>FastAPI</span><span>React</span><span>Docker</span><span>Prometheus</span><span>OpenCV</span><span>MediaPipe</span><span>Cobra</span><span>GitHub Actions</span><span>kubectl</span><span>CI/CD</span>
+  </div>
+</div>
+
+<main>
+  <section id="oss" class="wrap">
+    <h2 class="section-label"><span class="num">01</span> Open Source · Meshery (CNCF)</h2>
+    <p class="section-sub">Contributing to Meshery — CNCF incubating project. Real review cycles with maintainers, CMC certification in progress.</p>
+    <div class="pr-list">
+      <div class="pr">
+        <span class="badge merged">MERGED</span>
+        <span class="t"><a href="https://github.com/meshery/meshery/pull/22777" target="_blank" rel="noopener">#22777 — mesheryctl enrichment</a></span>
+        <span class="org">meshery/meshery</span>
+      </div>
+      <div class="pr">
+        <span class="badge merged">MERGED</span>
+        <span class="t"><a href="https://github.com/meshery/meshery/pull/22893" target="_blank" rel="noopener">#22893 — CLI fix</a></span>
+        <span class="org">meshery/meshery</span>
+      </div>
+      <div class="pr">
+        <span class="badge open">OPEN</span>
+        <span class="t"><a href="https://github.com/meshery/meshery/pull/22961" target="_blank" rel="noopener">#22961 — fix scaffolded model files not closed during generation</a></span>
+        <span class="org">meshery/meshery · all checks passing</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="wrap">
+    <h2 class="section-label"><span class="num">02</span> Projects</h2>
+    <p class="section-sub">Real tools with tests and CI — not tutorials.</p>
+    <div class="projects">
+      <div class="card featured reveal">
+        <div class="shot">
+          <img src="https://raw.githubusercontent.com/Ankitavasudev/festicam/main/docs/preview_v4.png" alt="FestiCam live preview — festival overlays on a webcam feed" loading="lazy">
+        </div>
+        <div>
+          <div class="top-row"><h3>🎆 FestiCam</h3><span class="lang">Python / OpenCV</span></div>
+          <p>Turns an ordinary webcam into a festival stage. Hand-tracking drives air-painting ribbons, head-tilt paints cheeks with gulaal, pinch bursts launch fireworks — each of 6 festivals with its own art, palette and an emotional welcome card. 48-test suite, CI green.</p>
+          <div class="chips"><span class="chip">MediaPipe</span><span class="chip">OpenCV</span><span class="chip">Computer Vision</span></div>
+          <a class="foot" href="https://github.com/Ankitavasudev/festicam" target="_blank" rel="noopener">View repo →</a>
+        </div>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>✍️ airmath</h3><span class="lang">Python</span></div>
+        <p>Write math in the air with your finger — MediaPipe hand tracking + MNIST recognition, equations solved live on screen.</p>
+        <div class="chips"><span class="chip">MediaPipe</span><span class="chip">MNIST</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/airmath" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>🛡️ quota-guard</h3><span class="lang">Go · K8s Operator</span></div>
+        <p>Kubernetes operator for per-namespace CPU/memory request budgets — controller-runtime, CRDs, status conditions, Prometheus metrics.</p>
+        <div class="chips"><span class="chip">controller-runtime</span><span class="chip">CRD</span><span class="chip">Prometheus</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/quota-guard" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>🫀 k8s-health-monitor</h3><span class="lang">Python</span></div>
+        <p>Cluster health in terminal &amp; browser: nodes, pods, deployments, resource accounting, security findings, Prometheus endpoint.</p>
+        <div class="chips"><span class="chip">kubectl</span><span class="chip">Prometheus</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/k8s-health-monitor" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>🧹 container-lint</h3><span class="lang">Python</span></div>
+        <p>Lint Dockerfiles &amp; docker-compose without a Docker daemon — 14 hadolint-style rules, JSON/SARIF output, CI-ready exit codes.</p>
+        <div class="chips"><span class="chip">hadolint rules</span><span class="chip">SARIF</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/container-lint" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>⚙️ k8s-pod-recommender</h3><span class="lang">Go</span></div>
+        <p>CPU/memory request sizing for Kubernetes pods. Conservative verdicts: fix / set / tighten / investigate / watch / keep.</p>
+        <div class="chips"><span class="chip">Sizing</span><span class="chip">60 tests</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/k8s-pod-recommender" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>📊 k8s-pod-analyzer</h3><span class="lang">Go · Cobra</span></div>
+        <p>Rank pod log errors by frequency — kubectl logs or stdin/file. Top errors + per-minute timeline, CSV/JSON output.</p>
+        <div class="chips"><span class="chip">logs</span><span class="chip">Cobra</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/k8s-pod-analyzer" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>✅ go-task-cli</h3><span class="lang">Go</span></div>
+        <p>Terminal task manager in Go (Cobra): filters, tags, due dates, stats, CSV import/export. JSON store, CI on every push.</p>
+        <div class="chips"><span class="chip">Cobra</span><span class="chip">CSV</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/go-task-cli" target="_blank" rel="noopener">View repo →</a>
+      </div>
+
+      <div class="card reveal">
+        <div class="top-row"><h3>💭 emotion-sense</h3><span class="lang">FastAPI + React</span></div>
+        <p>Explainable emotion scoring API — every prediction ships word-level evidence on a React dashboard.</p>
+        <div class="chips"><span class="chip">FastAPI</span><span class="chip">React</span></div>
+        <a class="foot" href="https://github.com/Ankitavasudev/emotion-sense" target="_blank" rel="noopener">View repo →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="wrap">
+    <h2 class="section-label"><span class="num">03</span> Contact</h2>
+    <div class="contact-card reveal">
+      <h2>Building something? Let's talk.</h2>
+      <p>Open to internships, open-source collaboration and cloud-native mentorship.</p>
+      <div class="cta-row" style="justify-content: center;">
+        <a class="btn primary" href="mailto:ankitasalaria21@gmail.com">Email me</a>
+        <a class="btn ghost" href="https://github.com/Ankitavasudev" target="_blank" rel="noopener">GitHub</a>
+        <a class="btn ghost" href="https://www.linkedin.com/in/ankitasalaria21" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="page wrap">
+  <p>© <span id="year"></span> Ankita Salaria · built from scratch, no templates <a href="https://github.com/Ankitavasudev/Ankitavasudev.github.io" target="_blank" rel="noopener">source</a></p>
+</footer>
+
+<script>
+  // year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // scroll reveal
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: .12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // count-up stats
+  const statIO = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target, end = +el.dataset.count, plus = el.dataset.plus || '';
+    let t0 = null;
+    const step = ts => {
+      if (!t0) t0 = ts;
+      const p = Math.min((ts - t0) / 1200, 1);
+      el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))) + plus;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    statIO.unobserve(el);
+  }), { threshold: .6 });
+  document.querySelectorAll('.stat .n').forEach(el => statIO.observe(el));
+
+  // cursor-follow glow on cards
+  document.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('mousemove', ev => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
+      c.style.setProperty('--my', (ev.clientY - r.top) + 'px');
+    });
+  });
+</script>
+</body>
+</html>
